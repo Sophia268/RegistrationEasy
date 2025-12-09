@@ -2,9 +2,13 @@ using System;
 using System.Drawing;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Globalization;
 using System.Windows.Forms;
-using Microsoft.Win32;
+using System.Diagnostics;
+using AutoDeployTool.Services;
+using System.Management;
+using System.Security.Cryptography;
 
 namespace invocation
 {
@@ -13,6 +17,7 @@ namespace invocation
         private TextBox txtMachineCode;
         private TextBox txtRegistrationCode;
         private Button btnRegister;
+        private Button btnPurchase;
         private Label lblResultHeader;
         private Label lblMachineId;
         private Label lblPeriodType;
@@ -43,12 +48,30 @@ namespace invocation
             var lblRegistrationCode = new Label { Text = "注册码", AutoSize = true, TextAlign = ContentAlignment.MiddleLeft };
             txtRegistrationCode = new TextBox { Anchor = AnchorStyles.Left | AnchorStyles.Right };
 
-            btnRegister = new Button { Text = "注册", Anchor = AnchorStyles.Left, AutoSize = true };
+            btnRegister = new Button { Text = "验证注册码", Anchor = AnchorStyles.Left, AutoSize = true };
             btnRegister.Click += BtnRegister_Click;
+            btnPurchase = new Button { Text = "购买注册码", Anchor = AnchorStyles.Left, AutoSize = true };
+            btnPurchase.Click += (_, __) =>
+            {
+                var uri = ConfigProvider.Get().URI;
+                if (string.IsNullOrWhiteSpace(uri))
+                {
+                    MessageBox.Show(this, "未配置购买链接", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+                try
+                {
+                    Process.Start(new ProcessStartInfo(uri) { UseShellExecute = true });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, $"无法打开链接：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            };
 
             lblResultHeader = new Label { Text = "解码结果", AutoSize = true, Font = new Font(Font, FontStyle.Bold) };
-            lblMachineId = new Label { Text = "机器ID：-", AutoSize = true };
-            lblPeriodType = new Label { Text = "有效期类型：-", AutoSize = true };
+            lblMachineId = new Label { Text = "机器码：-", AutoSize = true };
+            lblPeriodType = new Label { Text = "时长模式：-", AutoSize = true };
             lblCreateTime = new Label { Text = "创建时间：-", AutoSize = true };
             lblExpiredTime = new Label { Text = "过期时间：-", AutoSize = true };
 
@@ -56,7 +79,10 @@ namespace invocation
             layout.Controls.Add(txtMachineCode, 1, 0);
             layout.Controls.Add(lblRegistrationCode, 0, 1);
             layout.Controls.Add(txtRegistrationCode, 1, 1);
-            layout.Controls.Add(btnRegister, 1, 2);
+            var actionPanel = new FlowLayoutPanel { Anchor = AnchorStyles.Left, AutoSize = true, FlowDirection = FlowDirection.LeftToRight, WrapContents = false };
+            actionPanel.Controls.Add(btnPurchase);
+            actionPanel.Controls.Add(btnRegister);
+            layout.Controls.Add(actionPanel, 1, 2);
             layout.Controls.Add(lblResultHeader, 0, 4);
             layout.SetColumnSpan(lblResultHeader, 2);
             layout.Controls.Add(lblMachineId, 0, 5);
@@ -106,10 +132,7 @@ namespace invocation
                 return;
             }
 
-            lblMachineId.Text = $"机器ID：{info.MachineID}";
-            lblPeriodType.Text = $"有效期类型：{info.PeriodType}";
-            lblCreateTime.Text = $"创建时间：{info.CreateTime:yyyy-MM-dd HH:mm:ss}";
-            lblExpiredTime.Text = $"过期时间：{info.ExpiredTime:yyyy-MM-dd HH:mm:ss}";
+
 
             if (!string.Equals(info.MachineID, machineCode, StringComparison.OrdinalIgnoreCase))
             {
@@ -123,14 +146,76 @@ namespace invocation
                 return;
             }
 
+            lblMachineId.Text = $"机器码：{info.MachineID}";
+            lblPeriodType.Text = $"时长模式：{info.PeriodType}";
+            lblCreateTime.Text = $"创建时间：{info.CreateTime:yyyy-MM-dd HH:mm:ss}";
+            lblExpiredTime.Text = $"过期时间：{info.ExpiredTime:yyyy-MM-dd HH:mm:ss}";
+
             MessageBox.Show(this, "注册成功", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private static string GetLocalMachineId()
         {
-            var guid = Registry.GetValue(@"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography", "MachineGuid", null) as string;
-            if (!string.IsNullOrWhiteSpace(guid)) return guid!;
-            return Environment.MachineName;
+            try
+            {
+                var cpu = GetHardwareInfo("Win32_Processor", "ProcessorId");
+                var board = GetHardwareInfo("Win32_BaseBoard", "SerialNumber");
+                var disk = GetHardwareInfo("Win32_DiskDrive", "SerialNumber");
+
+                // 如果硬件信息获取失败，使用备用方案
+                if (string.IsNullOrWhiteSpace(cpu) && string.IsNullOrWhiteSpace(board))
+                {
+                    return FormatMachineId(Environment.MachineName);
+                }
+
+                var rawId = $"{cpu}|{board}|{disk}";
+                using var sha256 = SHA256.Create();
+                var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(rawId));
+                // 取前8字节，转为16进制字符串 (16字符)
+                var hex = BitConverter.ToString(hash, 0, 8).Replace("-", "");
+                return FormatMachineId(hex);
+            }
+            catch
+            {
+                return FormatMachineId(Environment.MachineName);
+            }
+        }
+
+        private static string GetHardwareInfo(string table, string property)
+        {
+            try
+            {
+                // Windows 平台特定检查
+                if (OperatingSystem.IsWindows())
+                {
+                    using var searcher = new ManagementObjectSearcher($"SELECT {property} FROM {table}");
+                    foreach (var obj in searcher.Get())
+                    {
+                        var val = obj[property]?.ToString();
+                        if (!string.IsNullOrWhiteSpace(val)) return val.Trim();
+                    }
+                }
+            }
+            catch { }
+            return string.Empty;
+        }
+
+        private static string FormatMachineId(string id)
+        {
+            // 确保全是字母数字，移除非法字符
+            var sb = new StringBuilder();
+            foreach (var c in id)
+            {
+                if (char.IsLetterOrDigit(c)) sb.Append(char.ToUpperInvariant(c));
+            }
+            var cleanId = sb.ToString();
+
+            // 补足16位
+            while (cleanId.Length < 16) cleanId += "0";
+            if (cleanId.Length > 16) cleanId = cleanId.Substring(0, 16);
+
+            // 分组显示 XXXX-XXXX-XXXX-XXXX
+            return $"{cleanId.Substring(0, 4)}-{cleanId.Substring(4, 4)}-{cleanId.Substring(8, 4)}-{cleanId.Substring(12, 4)}";
         }
 
         private static bool TryDecodeRegistrationCode(string regCode, out RegistrationInfo info, out string error)
@@ -138,43 +223,46 @@ namespace invocation
             info = default!;
             error = string.Empty;
 
-            string decoded;
+            string decoded = string.Empty;
+            regCode = regCode.Trim();
             try
             {
-                var normalized = NormalizeBase64(regCode);
-                var raw = Convert.FromBase64String(normalized);
-                decoded = Encoding.UTF8.GetString(raw);
+                decoded = EncryptService.DecryptText(regCode);
             }
-            catch (Exception ex)
+            catch
             {
-                error = $"Base64解码失败：{ex.Message}";
+                error = $"Base64解码失败";
                 return false;
             }
 
             try
             {
-                if (decoded.TrimStart().StartsWith("{"))
+                var text = decoded.Trim();
+                if (text.StartsWith("{"))
                 {
-                    var json = JsonSerializer.Deserialize<RegistrationInfo>(decoded, new JsonSerializerOptions
+                    var json = JsonSerializer.Deserialize<RegistrationInfo>(text, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
                     });
                     if (json is null) throw new Exception("JSON为空");
                     info = json;
+                    info.ExpiredTime = info.CreateTime.AddMonths(info.PeriodType);
                     return ValidateInfo(info, out error);
                 }
                 else
                 {
-                    var parts = decoded.Split('|');
-                    if (parts.Length < 4) throw new Exception($"字段不足，已解码：{decoded}");
+                    var parts = text.Split('|');
+                    if (parts.Length < 4) throw new Exception($"字段不足，已解码：{text}");
                     if (!DateTime.TryParse(parts[2], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var create))
                         throw new Exception($"创建时间格式错误：{parts[2]}");
                     if (!DateTime.TryParse(parts[3], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var expire))
                         throw new Exception($"过期时间格式错误：{parts[3]}");
+                    if (!int.TryParse(parts[1], out var periodType))
+                        throw new Exception($"时长模式格式错误：{parts[1]}");
                     info = new RegistrationInfo
                     {
                         MachineID = parts[0],
-                        PeriodType = parts[1],
+                        PeriodType = periodType,
                         CreateTime = create,
                         ExpiredTime = expire
                     };
@@ -201,8 +289,8 @@ namespace invocation
         private static bool ValidateInfo(RegistrationInfo info, out string error)
         {
             error = string.Empty;
-            if (string.IsNullOrWhiteSpace(info.MachineID)) { error = "机器ID缺失"; return false; }
-            if (string.IsNullOrWhiteSpace(info.PeriodType)) { error = "有效期类型缺失"; return false; }
+            if (string.IsNullOrWhiteSpace(info.MachineID)) { error = "机器码缺失"; return false; }
+            // PeriodType is int, no whitespace check needed
             if (info.ExpiredTime <= info.CreateTime) { error = "过期时间不合法"; return false; }
             return true;
         }
@@ -210,9 +298,32 @@ namespace invocation
 
     public class RegistrationInfo
     {
+        [JsonPropertyName("machineId")]
         public string MachineID { get; set; } = string.Empty;
-        public string PeriodType { get; set; } = string.Empty;
+
+        [JsonPropertyName("period")]
+        public int PeriodType { get; set; }
+
+        [JsonPropertyName("ts")]
+        [JsonConverter(typeof(CustomDateTimeConverter))]
         public DateTime CreateTime { get; set; }
+
         public DateTime ExpiredTime { get; set; }
+    }
+
+    public class CustomDateTimeConverter : JsonConverter<DateTime>
+    {
+        private readonly string _format = "yyyy-MM-dd HH:mm:ss";
+        public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            var str = reader.GetString();
+            if (string.IsNullOrWhiteSpace(str)) return default;
+            return DateTime.ParseExact(str, _format, CultureInfo.InvariantCulture);
+        }
+
+        public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
+        {
+            writer.WriteStringValue(value.ToString(_format));
+        }
     }
 }

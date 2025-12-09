@@ -1,0 +1,28 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C#: RegistrationEasy Debug",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/RegistrationEasy/RegistrationEasy.csproj"
+    },
+    {
+      "name": ".NET Core Launch (console)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/RegistrationEasy/bin/Debug/net9.0-windows/RegistrationEasy.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/RegistrationEasy",
+      "console": "internalConsole",
+      "stopAtEntry": false,
+      "justMyCode": false
+    },
+    {
+      "name": ".NET Core Attach",
+      "type": "coreclr",
+      "request": "attach"
+    }
+  ]
+}

@@ -7,11 +7,10 @@ namespace AutoDeployTool.Services;
 
 public class EncryptService
 {
-    private const string DefaultPassword = "MySecretKey123456";
 
     public static async Task<EncryptionResult> EncryptFilesAsync(string inputFile, string outputFile, string? password = null)
     {
-        var encryptionPassword = password ?? DefaultPassword;
+        var encryptionPassword = password ?? ConfigProvider.Get().Password;
 
         Console.WriteLine("开始加密文件...");
 
@@ -61,7 +60,7 @@ public class EncryptService
 
     public static void DecryptFiles(string iFile, string oFile, string? password = null)
     {
-        var encryptionPassword = password ?? DefaultPassword;
+        var encryptionPassword = password ?? ConfigProvider.Get().Password;
         try
         {
             if (!File.Exists(iFile))
@@ -172,13 +171,13 @@ public class EncryptService
 
     public static string EncryptText(string plainText, string? password = null)
     {
-        var encryptionPassword = password ?? DefaultPassword;
+        var encryptionPassword = password ?? ConfigProvider.Get().Password;
         return EncryptAES(plainText, encryptionPassword);
     }
 
     public static string DecryptText(string cipherText, string? password = null)
     {
-        var encryptionPassword = password ?? DefaultPassword;
+        var encryptionPassword = password ?? ConfigProvider.Get().Password;
         return DecryptAES(cipherText, encryptionPassword);
     }
 }
