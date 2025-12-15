@@ -62,10 +62,10 @@ jobs:
         shell: bash
         run: |
           cd publish
-          # Create zip file with format: OS-AppName-Arch-Version.zip
-          # Example: Linux-RegistrationEasy-linux-x64-v1.0.0.zip
+          # Create zip file with format: AppName-Arch-Version.zip
+          # Example: RegistrationEasy-linux-x64-v1.0.0.zip
 
-          ZIP_NAME="${{ matrix.asset_name }}-RegistrationEasy-${{ matrix.rid }}-${{ steps.get_version.outputs.TAG_NAME }}.zip"
+          ZIP_NAME="RegistrationEasy-${{ matrix.rid }}-${{ steps.get_version.outputs.TAG_NAME }}.zip"
 
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             7z a -tzip "../$ZIP_NAME" *
