@@ -16,6 +16,17 @@
     <!-- Explicitly target arm64-v8a (and x86_64 for emulator) -->
     <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
     <AssemblyName>RegistrationEasy.Android-arm64-x64</AssemblyName>
+    
+    <!-- Disable Incremental Packaging for Release to prevent runtime crashes -->
+    <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AndroidUseAapt2>true</AndroidUseAapt2>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+    
+    <!-- Explicitly disable Fast Deployment in ALL Configurations for now to fix crash -->
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
+    <AndroidFastDeploymentType>Assemblies</AndroidFastDeploymentType>
   </PropertyGroup>
 
   <ItemGroup>

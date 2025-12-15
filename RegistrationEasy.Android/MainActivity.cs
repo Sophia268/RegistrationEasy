@@ -18,19 +18,30 @@ public class MainActivity : AvaloniaMainActivity<App>
 {
     protected override void OnCreate(Bundle? savedInstanceState)
     {
-        MachineIdProvider.PlatformGetMachineId = () =>
+        try
         {
-            try
+            MachineIdProvider.PlatformGetMachineId = () =>
             {
-                return global::Android.Provider.Settings.Secure.GetString(ContentResolver, global::Android.Provider.Settings.Secure.AndroidId) ?? "ANDROID_UNKNOWN";
-            }
-            catch
-            {
-                return "ANDROID_ERROR";
-            }
-        };
+                try
+                {
+                    return global::Android.Provider.Settings.Secure.GetString(ContentResolver, global::Android.Provider.Settings.Secure.AndroidId) ?? "ANDROID_UNKNOWN";
+                }
+                catch (System.Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error getting Android ID: {ex}");
+                    return "ANDROID_ERROR";
+                }
+            };
 
-        base.OnCreate(savedInstanceState);
+            base.OnCreate(savedInstanceState);
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"FATAL ERROR in MainActivity.OnCreate: {ex}");
+            // Log to Android logcat as well
+            global::Android.Util.Log.Error("RegistrationEasy", $"FATAL ERROR in MainActivity.OnCreate: {ex}");
+            throw; // Re-throw to let the app crash visibly if we can't recover
+        }
     }
 
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)

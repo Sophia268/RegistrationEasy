@@ -217,8 +217,8 @@ run_android() {
 
     if [ -z "$DEVICE_ID" ]; then
         echo -e "${GREEN}Launching Emulator: $AVD_NAME ...${NC}"
-        # Launch emulator in background with GPU optimization
-        "$EMULATOR_PATH" -avd "$AVD_NAME" -gpu host &
+        # Launch emulator in background (Removed -gpu host as it caused black screen)
+        "$EMULATOR_PATH" -avd "$AVD_NAME" &
         
         echo "Waiting for emulator to become ready..."
         "$ADB_PATH" wait-for-device
@@ -234,6 +234,9 @@ run_android() {
     while [ "$("$ADB_PATH" -s "$DEVICE_ID" shell getprop sys.boot_completed | tr -d '\r')" != "1" ]; do
         sleep 1
     done
+    
+    echo "Waiting for emulator to stabilize (10s)..."
+    sleep 10
 
     echo -e "${GREEN}Building Android App...${NC}"
     ensure_keystore
@@ -274,9 +277,17 @@ run_android() {
     echo -e "${GREEN}Launching App...${NC}"
     "$ADB_PATH" -s "$DEVICE_ID" shell am start -n "$APP_ID/$APP_ID.MainActivity"
     
-    echo -e "${BLUE}Monitoring Logcat for Errors (Ctrl+C to stop monitoring)...${NC}"
-    # Show last 50 lines and follow, filtering for our app or errors
-    "$ADB_PATH" -s "$DEVICE_ID" logcat -v time "*:E" "$APP_ID:D" | grep -E "$APP_ID|FATAL|RuntimeError"
+    echo -e "${BLUE}Monitoring Logcat for Errors (Press Enter to stop monitoring without killing emulator)...${NC}"
+    # Start logcat in background
+    "$ADB_PATH" -s "$DEVICE_ID" logcat -v time "*:E" "$APP_ID:D" | grep -E "$APP_ID|FATAL|RuntimeError" &
+    LOGCAT_PID=$!
+    
+    # Wait for user input to stop monitoring
+    read -p ""
+    
+    # Kill logcat process but leave emulator running
+    kill $LOGCAT_PID 2>/dev/null
+    echo -e "${GREEN}Logcat monitoring stopped. Emulator is still running.${NC}"
 }
 
 clean_android() {
@@ -313,6 +324,57 @@ clean_android() {
     fi
 }
 
+fix_emulator() {
+    echo -e "${GREEN}Fixing Emulator (Cold Boot & Wipe Data)...${NC}"
+    
+    # Check if emulator executable exists
+    if [ ! -f "$EMULATOR_PATH" ]; then
+        echo "Error: Emulator not found at $EMULATOR_PATH"
+        exit 1
+    fi
+
+    # Get AVD
+    AVD_NAME=$("$EMULATOR_PATH" -list-avds | head -n 1)
+    
+    if [ -z "$AVD_NAME" ]; then
+        echo "No AVD found."
+        exit 1
+    fi
+
+    echo "Target AVD: $AVD_NAME"
+    
+    # Check if emulator is running and kill it
+    DEVICE_ID=$("$ADB_PATH" devices | grep "emulator-" | head -n 1 | awk '{print $1}')
+    if [ ! -z "$DEVICE_ID" ]; then
+        echo "Stopping running emulator: $DEVICE_ID..."
+        "$ADB_PATH" -s "$DEVICE_ID" emu kill
+        sleep 5
+    fi
+    
+    # Force kill any remaining emulator processes (Windows)
+    echo "Force killing any hung emulator processes..."
+    taskkill //F //IM emulator.exe //T 2>/dev/null
+    taskkill //F //IM qemu-system-x86_64.exe //T 2>/dev/null
+    sleep 2
+
+    echo -e "${BLUE}Cleaning up emulator lock files...${NC}"
+    
+    # AVDs are usually in $HOME/.android/avd/
+    # Try to find the AVD directory
+    AVD_DIR=$(find "$HOME/.android/avd" -name "${AVD_NAME}.avd" | head -n 1)
+    if [ ! -z "$AVD_DIR" ]; then
+         echo "Found AVD dir: $AVD_DIR"
+         rm -f "$AVD_DIR"/*.lock
+         echo "Removed lock files."
+    else
+         echo "Could not find AVD directory automatically."
+    fi
+    
+    echo -e "${GREEN}Emulator stopped and lock files cleaned.${NC}"
+    echo -e "${BLUE}Note: To fully wipe data, you can run: ${NC}"
+    echo -e "${BLUE}$EMULATOR_PATH -avd $AVD_NAME -wipe-data${NC}"
+}
+
 # Run the check
 check_system_info
 
@@ -328,8 +390,9 @@ else
     echo "2) Build Android APK"
     echo "3) Launch Android Emulator & Run App"
     echo "4) Stop & Uninstall Android App"
+    echo "5) Fix Emulator (Cold Boot & Wipe Data)"
     echo "q) Quit"
-    read -p "Enter choice [1-4]: " choice
+    read -p "Enter choice [1-5]: " choice
 fi
 
 case $choice in
@@ -337,6 +400,7 @@ case $choice in
     2) build_android ;;
     3) run_android ;;
     4) clean_android ;;
+    5) fix_emulator ;;
     q) echo "Exiting."; exit 0 ;;
     *) echo "Invalid option."; exit 1 ;;
 esac

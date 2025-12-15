@@ -7,43 +7,36 @@
              x:Class="RegistrationEasy.Views.MainView"
              x:DataType="vm:MainWindowViewModel">
 
-    <Grid RowDefinitions="Auto, *, Auto" Margin="20">
-        <!-- Header -->
-        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,20">
-            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+    <Grid RowDefinitions="Auto, *, Auto, Auto" Margin="16">
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="10">
                 <TextBlock Text="RegistrationEasy" FontSize="24" FontWeight="Bold"/>
                 <TextBlock Text="{Binding AppVersion, StringFormat='v{0}'}" FontSize="14" Foreground="Gray" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
             </StackPanel>
-            <Button Grid.Column="1" Content="About" Command="{Binding ToggleAboutCommand}" />
         </Grid>
 
-        <!-- Content (Scrollable for Mobile) -->
         <ScrollViewer Grid.Row="1" IsVisible="{Binding !ShowAbout}">
-            <StackPanel Spacing="15">
-                <!-- Machine Code -->
-                <Grid ColumnDefinitions="Auto, *">
-                    <TextBlock Grid.Column="0" Text="Machine Code:" VerticalAlignment="Center" Margin="0,0,10,0" Width="120"/>
-                    <TextBox Grid.Column="1" Text="{Binding MachineCode}" IsReadOnly="True" TextWrapping="Wrap"/>
-                </Grid>
+            <StackPanel Spacing="20">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Machine Code:" Margin="0,0,0,2"/>
+                    <TextBox Text="{Binding MachineCode}" IsReadOnly="True" TextWrapping="Wrap"/>
+                </StackPanel>
 
-                <!-- Registration Code -->
-                <Grid ColumnDefinitions="Auto, *">
-                    <TextBlock Grid.Column="0" Text="Registration Code:" VerticalAlignment="Center" Margin="0,0,10,0" Width="120"/>
-                    <TextBox Grid.Column="1" Text="{Binding RegistrationCode}" Height="80" TextWrapping="Wrap" AcceptsReturn="True"/>
-                </Grid>
+                <StackPanel Spacing="6">
+                    <TextBlock Text="Registration Code:" Margin="0,0,0,2"/>
+                    <TextBox Text="{Binding RegistrationCode}" Height="100" TextWrapping="Wrap" AcceptsReturn="True"/>
+                </StackPanel>
 
-                <!-- Buttons -->
-                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Command="{Binding PurchaseCommand}" Content="Purchase Code" Margin="5"/>
-                    <Button Command="{Binding RegisterCommand}" Content="Verify Code" Margin="5"/>
-                </WrapPanel>
+                <Button Content="Verify Code"
+                        Command="{Binding RegisterCommand}"
+                        HorizontalAlignment="Stretch"
+                        MinHeight="40"
+                        Margin="0,4,0,0"/>
 
-                <!-- Status -->
                 <TextBlock Text="{Binding StatusMessage}" 
                            Foreground="Red"
                            FontWeight="Bold" HorizontalAlignment="Center" TextWrapping="Wrap"/>
                  
-                <!-- Result Section -->
                 <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,10,0,0">
                     <StackPanel Spacing="5">
                         <TextBlock Text="Decoded Result" FontWeight="Bold" Margin="0,0,0,5"/>
@@ -68,7 +61,6 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- About Panel -->
         <ScrollViewer Grid.Row="1" IsVisible="{Binding ShowAbout}">
             <StackPanel Spacing="20" Margin="10,30,10,30">
                 <!-- Title & Version -->
@@ -118,7 +110,19 @@
             </StackPanel>
         </ScrollViewer>
         
-        <!-- Footer -->
-        <TextBlock Grid.Row="2" Text="Powered by Avalonia UI" FontSize="10" Foreground="Gray" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,12,0,4">
+            <Button Grid.Column="0"
+                    Content="Purchase Code"
+                    Command="{Binding PurchaseCommand}"
+                    Margin="0,0,8,0"
+                    MinHeight="36"/>
+            <Button Grid.Column="1"
+                    Content="About"
+                    Command="{Binding ToggleAboutCommand}"
+                    Margin="8,0,0,0"
+                    MinHeight="36"/>
+        </Grid>
+
+        <TextBlock Grid.Row="3" Text="Powered by Avalonia UI" FontSize="10" Foreground="Gray" HorizontalAlignment="Center" Margin="0,4,0,0"/>
     </Grid>
 </UserControl>
