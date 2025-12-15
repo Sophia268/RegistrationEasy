@@ -239,17 +239,17 @@ run_android() {
     ensure_keystore
     
     # Build Common First
-    dotnet build "$COMMON_PROJECT"
+    dotnet build "$COMMON_PROJECT" -c Release
     if [ $? -ne 0 ]; then echo "Common Build Failed"; exit 1; fi
 
     # Build Android
-    dotnet build "$ANDROID_PROJECT"
+    dotnet build "$ANDROID_PROJECT" -c Release
     if [ $? -ne 0 ]; then echo "Android Build Failed"; exit 1; fi
 
-    # Find APK
-    SIGNED_APK=$(find RegistrationEasy.Android/bin -name "*-Signed.apk" | head -n 1)
+    # Find APK (Release)
+    SIGNED_APK=$(find RegistrationEasy.Android/bin/Release -name "*-Signed.apk" | head -n 1)
     if [ -z "$SIGNED_APK" ]; then
-         SIGNED_APK=$(find RegistrationEasy.Android/bin -name "*.apk" | head -n 1)
+         SIGNED_APK=$(find RegistrationEasy.Android/bin/Release -name "*.apk" | head -n 1)
     fi
 
     if [ -z "$SIGNED_APK" ]; then
