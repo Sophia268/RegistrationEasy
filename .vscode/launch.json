@@ -12,7 +12,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/RegistrationEasy/bin/Debug/net9.0-windows/RegistrationEasy.dll",
+      "program": "${workspaceFolder}/RegistrationEasy/bin/Debug/net8.0-windows/RegistrationEasy.dll",
       "args": [],
       "cwd": "${workspaceFolder}/RegistrationEasy",
       "console": "internalConsole",

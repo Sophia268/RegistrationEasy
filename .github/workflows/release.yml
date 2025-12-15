@@ -1,0 +1,99 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact_name: linux
+            asset_name: Linux
+          - os: windows-latest
+            rid: win-x64
+            artifact_name: windows
+            asset_name: Windows
+          - os: macos-latest
+            rid: osx-arm64
+            artifact_name: macos
+            asset_name: Mac
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Get Version
+        id: get_version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Restore dependencies
+        run: dotnet restore RegistrationEasy/RegistrationEasy.csproj
+
+      - name: Publish
+        run: |
+          dotnet publish RegistrationEasy/RegistrationEasy.csproj \
+          -c Release \
+          -r ${{ matrix.rid }} \
+          --self-contained true \
+          -p:PublishSingleFile=true \
+          -p:Version=${{ steps.get_version.outputs.VERSION }} \
+          -o publish
+
+      - name: Rename and Zip
+        shell: bash
+        run: |
+          cd publish
+          # Create zip file with format: OS-AppName-Arch-Version.zip
+          # Example: Linux-RegistrationEasy-linux-x64-v1.0.0.zip
+          
+          ZIP_NAME="${{ matrix.asset_name }}-RegistrationEasy-${{ matrix.rid }}-${{ steps.get_version.outputs.VERSION }}.zip"
+          
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            7z a -tzip "../$ZIP_NAME" *
+          else
+            zip -r "../$ZIP_NAME" .
+          fi
+          
+          echo "ASSET_PATH=$ZIP_NAME" >> $GITHUB_ENV
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ./*.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            linux/*.zip
+            windows/*.zip
+            macos/*.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
