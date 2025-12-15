@@ -48,6 +48,7 @@ jobs:
         run: dotnet restore RegistrationEasy/RegistrationEasy.csproj
 
       - name: Publish
+        shell: bash
         run: |
           dotnet publish RegistrationEasy/RegistrationEasy.csproj \
           -c Release \
