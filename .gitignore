@@ -318,3 +318,11 @@ ASALocalRun/
 
 # Avalonia
 *.Avalonia/
+
+# Android
+# *.keystore
+local.properties
+.gradle/
+*.apk
+*.aab
+
