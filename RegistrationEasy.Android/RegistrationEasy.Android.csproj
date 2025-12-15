@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-android</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ApplicationId>com.registrationeasy.app</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidKeyStore>True</AndroidKeyStore>
+    <AndroidSigningKeyStore>registrationeasy.keystore</AndroidSigningKeyStore>
+    <AndroidSigningStorePass>80fafa</AndroidSigningStorePass>
+    <AndroidSigningKeyAlias>80fafa</AndroidSigningKeyAlias>
+    <AndroidSigningKeyPass>80fafa</AndroidSigningKeyPass>
+    <!-- Explicitly target arm64-v8a (and x86_64 for emulator) -->
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+    <AssemblyName>RegistrationEasy.Android-arm64-x64</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Android" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RegistrationEasy.Common\RegistrationEasy.Common.csproj" />
+  </ItemGroup>
+</Project>

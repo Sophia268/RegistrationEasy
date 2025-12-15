@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:RegistrationEasy.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="using:RegistrationEasy.Views"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+        x:Class="RegistrationEasy.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="RegistrationEasy"
+        Width="600" Height="500"
+        WindowStartupLocation="CenterScreen"
+        CanResize="True">
+        <views:MainView />
+</Window>

@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -10,12 +9,18 @@ namespace RegistrationEasy.Services
 {
     public static class MachineIdProvider
     {
+        public static Func<string>? PlatformGetMachineId { get; set; }
+
         public static string GetLocalMachineId()
         {
             try
             {
                 string rawId;
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (PlatformGetMachineId != null)
+                {
+                    rawId = PlatformGetMachineId();
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     rawId = GetWindowsId();
                 }
@@ -61,15 +66,14 @@ namespace RegistrationEasy.Services
             return $"{cleanId.Substring(0, 4)}-{cleanId.Substring(4, 4)}-{cleanId.Substring(8, 4)}-{cleanId.Substring(12, 4)}";
         }
 
-        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
         private static string GetWindowsId()
         {
             try
             {
-                // Use System.Management for backward compatibility on Windows
-                var cpu = GetManagementInfo("Win32_Processor", "ProcessorId");
-                var board = GetManagementInfo("Win32_BaseBoard", "SerialNumber");
-                var disk = GetManagementInfo("Win32_DiskDrive", "SerialNumber");
+                // Use wmic for backward compatibility on Windows (replacing System.Management)
+                var cpu = GetWmicInfo("path Win32_Processor get ProcessorId");
+                var board = GetWmicInfo("path Win32_BaseBoard get SerialNumber");
+                var disk = GetWmicInfo("path Win32_DiskDrive get SerialNumber");
 
                 if (string.IsNullOrWhiteSpace(cpu) && string.IsNullOrWhiteSpace(board))
                 {
@@ -83,16 +87,17 @@ namespace RegistrationEasy.Services
             }
         }
 
-        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-        private static string GetManagementInfo(string table, string property)
+        private static string GetWmicInfo(string arguments)
         {
             try
             {
-                using var searcher = new ManagementObjectSearcher($"SELECT {property} FROM {table}");
-                foreach (var obj in searcher.Get())
+                var output = RunCommand("wmic", arguments);
+                var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                // First line is header, look for value in subsequent lines
+                for (int i = 1; i < lines.Length; i++)
                 {
-                    var val = obj[property]?.ToString();
-                    if (!string.IsNullOrWhiteSpace(val)) return val.Trim();
+                    var val = lines[i].Trim();
+                    if (!string.IsNullOrWhiteSpace(val)) return val;
                 }
             }
             catch { }

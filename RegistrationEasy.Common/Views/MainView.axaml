@@ -1,20 +1,11 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:RegistrationEasy.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
-        x:Class="RegistrationEasy.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="RegistrationEasy"
-        Width="600" Height="500"
-        WindowStartupLocation="CenterScreen"
-        CanResize="False">
-
-    <Design.DataContext>
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RegistrationEasy.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="800"
+             x:Class="RegistrationEasy.Views.MainView"
+             x:DataType="vm:MainWindowViewModel">
 
     <Grid RowDefinitions="Auto, *, Auto" Margin="20">
         <!-- Header -->
@@ -26,58 +17,60 @@
             <Button Grid.Column="1" Content="About" Command="{Binding ToggleAboutCommand}" />
         </Grid>
 
-        <!-- Content -->
-        <StackPanel Grid.Row="1" Spacing="15" IsVisible="{Binding !ShowAbout}">
-            <!-- Machine Code -->
-            <Grid ColumnDefinitions="120, *">
-                <TextBlock Grid.Column="0" Text="Machine Code:" VerticalAlignment="Center"/>
-                <TextBox Grid.Column="1" Text="{Binding MachineCode}" IsReadOnly="True"/>
-            </Grid>
+        <!-- Content (Scrollable for Mobile) -->
+        <ScrollViewer Grid.Row="1" IsVisible="{Binding !ShowAbout}">
+            <StackPanel Spacing="15">
+                <!-- Machine Code -->
+                <Grid ColumnDefinitions="Auto, *">
+                    <TextBlock Grid.Column="0" Text="Machine Code:" VerticalAlignment="Center" Margin="0,0,10,0" Width="120"/>
+                    <TextBox Grid.Column="1" Text="{Binding MachineCode}" IsReadOnly="True" TextWrapping="Wrap"/>
+                </Grid>
 
-            <!-- Registration Code -->
-            <Grid ColumnDefinitions="120, *">
-                <TextBlock Grid.Column="0" Text="Registration Code:" VerticalAlignment="Center"/>
-                <TextBox Grid.Column="1" Text="{Binding RegistrationCode}" Height="80" TextWrapping="Wrap" AcceptsReturn="True"/>
-            </Grid>
+                <!-- Registration Code -->
+                <Grid ColumnDefinitions="Auto, *">
+                    <TextBlock Grid.Column="0" Text="Registration Code:" VerticalAlignment="Center" Margin="0,0,10,0" Width="120"/>
+                    <TextBox Grid.Column="1" Text="{Binding RegistrationCode}" Height="80" TextWrapping="Wrap" AcceptsReturn="True"/>
+                </Grid>
 
-            <!-- Buttons -->
-            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
-                <Button Command="{Binding PurchaseCommand}" Content="Purchase Code"/>
-                <Button Command="{Binding RegisterCommand}" Content="Verify Code"/>
+                <!-- Buttons -->
+                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Command="{Binding PurchaseCommand}" Content="Purchase Code" Margin="5"/>
+                    <Button Command="{Binding RegisterCommand}" Content="Verify Code" Margin="5"/>
+                </WrapPanel>
+
+                <!-- Status -->
+                <TextBlock Text="{Binding StatusMessage}" 
+                           Foreground="Red"
+                           FontWeight="Bold" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                 
+                <!-- Result Section -->
+                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,10,0,0">
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Decoded Result" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <Grid ColumnDefinitions="120, *">
+                            <TextBlock Grid.Column="0" Text="Machine ID:"/>
+                            <TextBlock Grid.Column="1" Text="{Binding DecodedMachineId}" TextWrapping="Wrap"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="120, *">
+                            <TextBlock Grid.Column="0" Text="Period Type:"/>
+                            <TextBlock Grid.Column="1" Text="{Binding PeriodType}"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="120, *">
+                            <TextBlock Grid.Column="0" Text="Create Time:"/>
+                            <TextBlock Grid.Column="1" Text="{Binding CreateTime}"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="120, *">
+                            <TextBlock Grid.Column="0" Text="Expired Time:"/>
+                            <TextBlock Grid.Column="1" Text="{Binding ExpiredTime}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
             </StackPanel>
-
-            <!-- Status -->
-            <TextBlock Text="{Binding StatusMessage}" 
-                       Foreground="Red"
-                       FontWeight="Bold" HorizontalAlignment="Center" TextWrapping="Wrap"/>
-             
-            <!-- Result Section -->
-            <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,10,0,0">
-                <StackPanel Spacing="5">
-                    <TextBlock Text="Decoded Result" FontWeight="Bold" Margin="0,0,0,5"/>
-                    <Grid ColumnDefinitions="120, *">
-                        <TextBlock Grid.Column="0" Text="Machine ID:"/>
-                        <TextBlock Grid.Column="1" Text="{Binding DecodedMachineId}"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="120, *">
-                        <TextBlock Grid.Column="0" Text="Period Type:"/>
-                        <TextBlock Grid.Column="1" Text="{Binding PeriodType}"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="120, *">
-                        <TextBlock Grid.Column="0" Text="Create Time:"/>
-                        <TextBlock Grid.Column="1" Text="{Binding CreateTime}"/>
-                    </Grid>
-                    <Grid ColumnDefinitions="120, *">
-                        <TextBlock Grid.Column="0" Text="Expired Time:"/>
-                        <TextBlock Grid.Column="1" Text="{Binding ExpiredTime}"/>
-                    </Grid>
-                </StackPanel>
-            </Border>
-        </StackPanel>
+        </ScrollViewer>
 
         <!-- About Panel -->
         <ScrollViewer Grid.Row="1" IsVisible="{Binding ShowAbout}">
-            <StackPanel Spacing="20" Margin="30">
+            <StackPanel Spacing="20" Margin="10,30,10,30">
                 <!-- Title & Version -->
                 <StackPanel Spacing="5" HorizontalAlignment="Center">
                     <TextBlock Text="RegistrationEasy" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{DynamicResource SystemAccentColor}"/>
@@ -128,4 +121,4 @@
         <!-- Footer -->
         <TextBlock Grid.Row="2" Text="Powered by Avalonia UI" FontSize="10" Foreground="Gray" HorizontalAlignment="Center" Margin="0,10,0,0"/>
     </Grid>
-</Window>
+</UserControl>
