@@ -37,7 +37,12 @@ jobs:
       - name: Get Version
         id: get_version
         shell: bash
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          # Strip 'v' prefix if present for dotnet versioning compatibility
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          CLEAN_VERSION="${TAG_NAME#v}"
+          echo "VERSION=$CLEAN_VERSION" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: Restore dependencies
         run: dotnet restore RegistrationEasy/RegistrationEasy.csproj
@@ -58,15 +63,15 @@ jobs:
           cd publish
           # Create zip file with format: OS-AppName-Arch-Version.zip
           # Example: Linux-RegistrationEasy-linux-x64-v1.0.0.zip
-          
-          ZIP_NAME="${{ matrix.asset_name }}-RegistrationEasy-${{ matrix.rid }}-${{ steps.get_version.outputs.VERSION }}.zip"
-          
+
+          ZIP_NAME="${{ matrix.asset_name }}-RegistrationEasy-${{ matrix.rid }}-${{ steps.get_version.outputs.TAG_NAME }}.zip"
+
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             7z a -tzip "../$ZIP_NAME" *
           else
             zip -r "../$ZIP_NAME" .
           fi
-          
+
           echo "ASSET_PATH=$ZIP_NAME" >> $GITHUB_ENV
 
       - name: Upload Artifact
