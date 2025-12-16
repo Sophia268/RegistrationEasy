@@ -66,12 +66,16 @@ jobs:
           # Example: RegistrationEasy-linux-x64-v1.0.0.zip
 
           ZIP_NAME="RegistrationEasy-${{ matrix.rid }}-${{ steps.get_version.outputs.TAG_NAME }}.zip"
+          LATEST_ZIP_NAME="RegistrationEasy-${{ matrix.rid }}-latest.zip"
 
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             7z a -tzip "../$ZIP_NAME" *
           else
             zip -r "../$ZIP_NAME" .
           fi
+
+          # Create a copy with 'latest' name
+          cp "../$ZIP_NAME" "../$LATEST_ZIP_NAME"
 
           echo "ASSET_PATH=$ZIP_NAME" >> $GITHUB_ENV
 
@@ -154,7 +158,9 @@ jobs:
             exit 1
           fi
           APK_NAME="RegistrationEasy-Android-${{ steps.get_version.outputs.TAG_NAME }}.apk"
+          LATEST_APK_NAME="RegistrationEasy-Android-latest.apk"
           cp "$APK_PATH" "$APK_NAME"
+          cp "$APK_PATH" "$LATEST_APK_NAME"
 
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
@@ -170,20 +176,45 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download Artifacts
         uses: actions/download-artifact@v4
 
       - name: Display structure of downloaded files
         run: ls -R
 
-      - name: Create Release
+      - name: Create Versioned Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            linux/*.zip
-            windows/*.zip
-            macos/*.zip
-            android/*.apk
+            linux/*-v*.zip
+            windows/*-v*.zip
+            macos/*-v*.zip
+            android/*-v*.apk
           generate_release_notes: true
           draft: false
           prerelease: false
+
+      - name: Update Latest Tag
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          # Force update the tag to the current commit
+          git tag -fa latest-release -m "Latest build from ${{ github.ref_name }}"
+          git push -f origin latest-release
+
+      - name: Publish Rolling Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-release
+          name: Latest Build
+          body: "Latest build artifacts updated from version ${{ github.ref_name }}"
+          files: |
+            linux/*-latest.zip
+            windows/*-latest.zip
+            macos/*-latest.zip
+            android/*-latest.apk
+          prerelease: true
+          make_latest: false
