@@ -45,12 +45,12 @@ jobs:
           echo "TAG_NAME=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: Restore dependencies
-        run: dotnet restore RegistrationEasy/RegistrationEasy.csproj
+        run: dotnet restore RegistrationEasy/RegistrationEasy.Desktop.csproj
 
       - name: Publish
         shell: bash
         run: |
-          dotnet publish RegistrationEasy/RegistrationEasy.csproj \
+          dotnet publish RegistrationEasy/RegistrationEasy.Desktop.csproj \
           -c Release \
           -r ${{ matrix.rid }} \
           --self-contained true \
@@ -101,7 +101,7 @@ jobs:
           java-version: "17"
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v3.0.0
         with:
           packages: |
             platform-tools
