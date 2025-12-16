@@ -185,9 +185,12 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
 
+      # 1. Create the normal versioned release (e.g. v1.0.0)
+      # This preserves history and includes versioned assets
       - name: Create Versioned Release
         uses: softprops/action-gh-release@v2
         with:
+          name: Release ${{ github.ref_name }}
           files: |
             linux/*-v*.zip
             windows/*-v*.zip
@@ -197,24 +200,23 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Update Latest Tag
+      # 2. Update the 'latest' release
+      # This ensures a fixed URL for the latest assets
+      - name: Update Latest Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          # Force update the tag to the current commit
-          git tag -fa latest-release -m "Latest build from ${{ github.ref_name }}"
-          git push -f origin latest-release
+          # Delete existing 'latest' release and tag if they exist
+          gh release delete latest --cleanup-tag -y || true
 
-      - name: Publish Rolling Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: latest-release
-          name: Latest Build
-          body: "Latest build artifacts updated from version ${{ github.ref_name }}"
-          files: |
-            linux/*-latest.zip
-            windows/*-latest.zip
-            macos/*-latest.zip
+          # Create new 'latest' release pointing to the current commit
+          # using the 'latest' artifacts
+          gh release create latest \
+            --title "Latest Release" \
+            --notes "Always updated to the latest build artifacts. Current version: ${{ github.ref_name }}" \
+            --prerelease=false \
+            --target ${{ github.sha }} \
+            linux/*-latest.zip \
+            windows/*-latest.zip \
+            macos/*-latest.zip \
             android/*-latest.apk
-          prerelease: true
-          make_latest: false
