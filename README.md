@@ -107,7 +107,31 @@ APK 会生成在 `RegistrationEasy.Android/bin/Release/...` 下，具体路径�
   - 构建并签名 Android APK（使用 GitHub Secrets 中的 keystore 配置）。
   - 创建 GitHub Release，并附上上述所有构建工件。
 
-具体 CI 配置和 Secrets 要求可参考方案文档第 8 章。
+要让 Android 发布工作正常工作，需要在 GitHub 仓库中预先配置以下 Secrets：
+
+- `ANDROID_KEYSTORE_BASE64`：Android keystore 文件的 base64 编码内容。
+- `ANDROID_KEYSTORE_PASSWORD`：keystore 存储密码。
+- `ANDROID_KEY_ALIAS`：用于签名的 key alias 名称。
+- `ANDROID_KEY_PASSWORD`：对应 alias 的 key 密码。
+
+推荐配置步骤（一次性操作）：
+
+1. 在本机生成 keystore 的 base64 文本（示例）：
+   ```bash
+   base64 -w0 RegistrationEasy.Android/registrationeasy.keystore > keystore.b64.txt
+   ```
+2. 打开 GitHub 仓库 → `Settings` → `Secrets and variables` → `Actions`。
+3. 依次创建以上四个 Secrets：
+   - 将 `keystore.b64.txt` 的整行内容复制到 `ANDROID_KEYSTORE_BASE64`。
+   - 根据本地 keystore 实际配置填写 `ANDROID_KEYSTORE_PASSWORD`、`ANDROID_KEY_ALIAS`、`ANDROID_KEY_PASSWORD`。
+4. 推送 tag，例如：
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+   GitHub Actions 将自动构建桌面包和已签名的 Android APK 并创建 Release。
+
+更详细的 CI 配置说明可参考方案文档第 8 章。
 
 ## 🛠️ 集成与适配 / Integration
 

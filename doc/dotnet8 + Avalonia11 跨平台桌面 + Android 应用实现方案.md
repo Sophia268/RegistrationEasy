@@ -970,11 +970,23 @@ jobs:
       ```
       将生成的 `keystore.b64.txt` 中整行内容复制到该 Secret。
   - `ANDROID_KEYSTORE_PASSWORD`：
-    - keystore 存储密码。
+    - keystore 存储密码, 例如我设置成 80fafa。
   - `ANDROID_KEY_ALIAS`：
-    - keystore 中用于签名的 alias 名称。
+    - keystore 中用于签名的 alias 名称,例如我设置成 80fafa。
   - `ANDROID_KEY_PASSWORD`：
     - 对应 alias 的 key 密码。
+
+- 本项目中 keystore 的来源：
+
+  - 本地开发时，`build.sh` 中的 `ensure_keystore` 函数会在首次运行时自动调用 `keytool` 生成 keystore：
+    ```bash
+    keytool -genkey -v -keystore RegistrationEasy.Android/registrationeasy.keystore \
+      -alias 80fafa -keyalg RSA -keysize 2048 -validity 10000 \
+      -storepass 80fafa -keypass 80fafa \
+      -dname "CN=RegistrationEasy, OU=Development, O=80fafa, L=City, S=State, C=US"
+    ```
+  - 因此，通常只需要在本地执行一次 `./build.sh 2` 或 `./build.sh 3`，即可在 `RegistrationEasy.Android/` 下生成 `registrationeasy.keystore` 文件。
+  - CI 环境中不再自动生成 keystore，而是复用这个已经存在的 keystore，将其内容通过 base64 编码后放入 GitHub Secrets。
 
 - 工作流中的用法：
   - `Decode Android keystore` 步骤从 `ANDROID_KEYSTORE_BASE64` 解码出 `ci-release.keystore`：
