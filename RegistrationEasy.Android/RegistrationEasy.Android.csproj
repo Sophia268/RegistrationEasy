@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-android34.0</TargetFramework>
+    <TargetFramework>net10.0-android</TargetFramework>
     <OutputType>Exe</OutputType>
     <SupportedOSPlatformVersion>34</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
@@ -28,8 +28,6 @@
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
     <AndroidFastDeploymentType>Assemblies</AndroidFastDeploymentType>
     
-    <!-- Disable EOL target framework warnings -->
-    <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
