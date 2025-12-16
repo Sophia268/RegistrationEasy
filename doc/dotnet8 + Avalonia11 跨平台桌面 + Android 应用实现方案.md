@@ -1,4 +1,4 @@
-# dotnet8 + Avalonia11 跨平台桌面 + Android 应用实现方案
+# dotnet10 + Avalonia11 跨平台桌面 + Android 应用实现方案
 
 > 以 RegistrationEasy 项目为例的实践总结
 
@@ -6,7 +6,7 @@
 
 ## 1. 整体目标与方案概览
 
-- 使用 `.NET 8` + `Avalonia 11` 搭建一个统一 UI 的跨平台应用：
+- 使用 `.NET 10` + `Avalonia 11` 搭建一个统一 UI 的跨平台应用：
   - 桌面端：Windows / Linux / macOS
   - 移动端：Android
 - 采用 MVVM 模式（`CommunityToolkit.Mvvm`）构建 UI 与业务逻辑。
@@ -72,9 +72,9 @@
 ### 2.2 安装 .NET SDK
 
 - 推荐版本：
-  - `.NET SDK 8.x`（例如：`8.0.414` 等 LTS 版本）
+  - `.NET SDK 10.x`（例如：`10.0.101` 等 LTS 版本）
 - 下载地址：
-  - https://dotnet.microsoft.com/en-us/download/dotnet/8.0
+  - https://dotnet.microsoft.com/en-us/download/dotnet/10.0
 - 安装完成后验证：
   ```bash
   dotnet --info
@@ -224,7 +224,7 @@ RegistrationEasy/
 
 ### 3.1 共享项目 `RegistrationEasy.Common`
 
-- 目标框架：`net8.0`
+- 目标框架：`net10.0`
 - 主要职责：
   - 定义 `App`（Application 入口）
   - 注册主窗口 / 页面
@@ -237,7 +237,7 @@ RegistrationEasy/
   ```xml
   <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-      <TargetFramework>net8.0</TargetFramework>
+      <TargetFramework>net10.0</TargetFramework>
       <Nullable>enable</Nullable>
       <LangVersion>latest</LangVersion>
       <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -270,7 +270,7 @@ RegistrationEasy/
 
 ### 3.3 Android 项目 `RegistrationEasy.Android`
 
-- 目标框架：`net8.0-android`
+- 目标框架：`net10.0-android`
 - 主要职责：
   - 提供 `MainActivity` 作为 Android 入口。
   - 调用 Avalonia Android 入口启动共享 `App`。
@@ -451,7 +451,7 @@ esac
 
 ### 6.3 使用流程示例
 
-1. 确认已安装 .NET 8、Android SDK、adb 等。
+1. 确认已安装 .NET 10、Android SDK、adb 等。
 2. 在项目根目录给予脚本执行权限：
    ```bash
    chmod +x build.sh

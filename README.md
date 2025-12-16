@@ -59,7 +59,7 @@ RegistrationEasy/
   - 统一封装桌面构建、Android 构建、模拟器启动与部署等命令，便于日常开发调试。
 
 更多底层设计与踩坑说明可参考文档：  
-`doc/dotnet8 + Avalonia11 跨平台桌面 + Android 应用实现方案.md`
+`doc/dotnet10 + Avalonia11 跨平台桌面 + Android 应用实现方案.md`
 
 ## 🚀 使用方式 / Quick Start
 
