@@ -32,7 +32,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Get Version
         id: get_version
@@ -66,12 +66,16 @@ jobs:
           # Example: RegistrationEasy-linux-x64-v1.0.0.zip
 
           ZIP_NAME="RegistrationEasy-${{ matrix.rid }}-${{ steps.get_version.outputs.TAG_NAME }}.zip"
+          LATEST_ZIP_NAME="RegistrationEasy-${{ matrix.rid }}-latest.zip"
 
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
             7z a -tzip "../$ZIP_NAME" *
           else
             zip -r "../$ZIP_NAME" .
           fi
+
+          # Create a copy with 'latest' name
+          cp "../$ZIP_NAME" "../$LATEST_ZIP_NAME"
 
           echo "ASSET_PATH=$ZIP_NAME" >> $GITHUB_ENV
 
@@ -92,7 +96,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -135,9 +139,9 @@ jobs:
         run: |
           dotnet publish RegistrationEasy.Android/RegistrationEasy.Android.csproj \
             -c Release \
-            -f net8.0-android \
+            -f net10.0-android \
             -p:AndroidKeyStore=true \
-            -p:AndroidSigningKeyStore=RegistrationEasy.Android/ci-release.keystore \
+            -p:AndroidSigningKeyStore=ci-release.keystore \
             -p:AndroidSigningStorePass=$ANDROID_KEYSTORE_PASSWORD \
             -p:AndroidSigningKeyAlias=$ANDROID_KEY_ALIAS \
             -p:AndroidSigningKeyPass=$ANDROID_KEY_PASSWORD
@@ -154,7 +158,9 @@ jobs:
             exit 1
           fi
           APK_NAME="RegistrationEasy-Android-${{ steps.get_version.outputs.TAG_NAME }}.apk"
+          LATEST_APK_NAME="RegistrationEasy-Android-latest.apk"
           cp "$APK_PATH" "$APK_NAME"
+          cp "$APK_PATH" "$LATEST_APK_NAME"
 
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
@@ -170,20 +176,47 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Download Artifacts
         uses: actions/download-artifact@v4
 
       - name: Display structure of downloaded files
         run: ls -R
 
-      - name: Create Release
+      # 1. Create the normal versioned release (e.g. v1.0.0)
+      # This preserves history and includes versioned assets
+      - name: Create Versioned Release
         uses: softprops/action-gh-release@v2
         with:
+          name: Release ${{ github.ref_name }}
           files: |
-            linux/*.zip
-            windows/*.zip
-            macos/*.zip
-            android/*.apk
+            linux/*-v*.zip
+            windows/*-v*.zip
+            macos/*-v*.zip
+            android/*-v*.apk
           generate_release_notes: true
           draft: false
           prerelease: false
+
+      # 2. Update the 'latest' release
+      # This ensures a fixed URL for the latest assets
+      - name: Update Latest Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Delete existing 'latest' release and tag if they exist
+          gh release delete latest --cleanup-tag -y || true
+
+          # Create new 'latest' release pointing to the current commit
+          # using the 'latest' artifacts
+          gh release create latest \
+            --title "Latest Release" \
+            --notes "Always updated to the latest build artifacts. Current version: ${{ github.ref_name }}" \
+            --prerelease=false \
+            --target ${{ github.sha }} \
+            linux/*-latest.zip \
+            windows/*-latest.zip \
+            macos/*-latest.zip \
+            android/*-latest.apk

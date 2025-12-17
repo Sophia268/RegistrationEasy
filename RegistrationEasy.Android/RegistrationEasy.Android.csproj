@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-android34.0</TargetFramework>
+    <TargetFramework>net10.0-android</TargetFramework>
     <OutputType>Exe</OutputType>
-    <SupportedOSPlatformVersion>34</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+    <TargetPlatformVersion>36.0</TargetPlatformVersion>
     <Nullable>enable</Nullable>
     <ApplicationId>com.registrationeasy.app</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
@@ -14,7 +15,8 @@
     <AndroidSigningKeyAlias>80fafa</AndroidSigningKeyAlias>
     <AndroidSigningKeyPass>80fafa</AndroidSigningKeyPass>
     <!-- Explicitly target arm64-v8a (and x86_64 for emulator) -->
-    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(Configuration)' == 'Debug'">android-arm64;android-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(Configuration)' == 'Release'">android-arm64</RuntimeIdentifiers>
     <AssemblyName>RegistrationEasy.Android-arm64-x64</AssemblyName>
     
     <!-- Disable Incremental Packaging for Release to prevent runtime crashes -->
@@ -26,7 +28,7 @@
     <!-- Explicitly disable Fast Deployment in ALL Configurations for now to fix crash -->
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
-    <AndroidFastDeploymentType>Assemblies</AndroidFastDeploymentType>
+    
   </PropertyGroup>
 
   <ItemGroup>
