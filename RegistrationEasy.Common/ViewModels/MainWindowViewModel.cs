@@ -87,7 +87,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (info == null) return;
 
-        if (!string.Equals(info.MachineID, MachineCode, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(info.MachineID) &&
+            !string.Equals(info.MachineID.Trim(), MachineCode.Replace("-", "").Trim(), StringComparison.OrdinalIgnoreCase))
         {
             StatusMessage = "Machine code mismatch";
             IsError = true;

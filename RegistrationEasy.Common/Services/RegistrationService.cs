@@ -54,9 +54,8 @@ namespace RegistrationEasy.Services
                 else
                 {
                     var parts = text.Split('|');
-                    if (parts.Length < 5) throw new Exception($"Insufficient fields: {text}");
-
-                    // Order: CreateTime|PeriodType|MachineID|Quota|ExpiredTime
+                    // Only support new format: CreateTime|PeriodType|MachineID|Quota|ExpiredTime
+                    if (parts.Length != 5) throw new Exception($"Invalid format, expected 5 parts but got {parts.Length}: {text}");
 
                     if (!DateTime.TryParse(parts[0], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var create))
                         throw new Exception($"Invalid create time: {parts[0]}");
@@ -92,7 +91,7 @@ namespace RegistrationEasy.Services
         private bool ValidateInfo(RegistrationInfo info, out string error)
         {
             error = string.Empty;
-            if (string.IsNullOrWhiteSpace(info.MachineID)) { error = "Machine ID missing"; return false; }
+            // if (string.IsNullOrWhiteSpace(info.MachineID)) { error = "Machine ID missing"; return false; }
             if (info.ExpiredTime <= info.CreateTime) { error = "Expired time is invalid"; return false; }
             return true;
         }
