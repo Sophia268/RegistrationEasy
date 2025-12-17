@@ -5,6 +5,12 @@
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    
+    <!-- Windows Specific Configuration -->
+    <RuntimeIdentifier Condition="$([MSBuild]::IsOSPlatform('Windows'))">win-x64</RuntimeIdentifier>
+    <SelfContained Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</SelfContained>
+    <AssemblyName Condition="$([MSBuild]::IsOSPlatform('Windows'))">RegistrationEasyApp</AssemblyName>
+
     <!-- Allow Version to be set from CLI -->
     <Version Condition="'$(Version)' == ''">1.0.0</Version>
   </PropertyGroup>
