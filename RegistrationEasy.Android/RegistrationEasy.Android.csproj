@@ -27,9 +27,6 @@
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
     <AndroidFastDeploymentType>Assemblies</AndroidFastDeploymentType>
-    
-    <!-- Disable EOL target framework warnings -->
-    <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
