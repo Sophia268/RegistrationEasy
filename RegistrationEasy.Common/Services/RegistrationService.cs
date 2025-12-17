@@ -44,26 +44,40 @@ namespace RegistrationEasy.Services
                     {
                         info.ExpiredTime = info.CreateTime.AddMonths(info.PeriodType);
                     }
-                    
+                    else
+                    {
+                        info.ExpiredTime = info.CreateTime.AddYears(50);//无限期就设为100年
+                    }
+
                     return ValidateInfo(info, out error);
                 }
                 else
                 {
                     var parts = text.Split('|');
-                    if (parts.Length < 4) throw new Exception($"Insufficient fields: {text}");
-                    if (!DateTime.TryParse(parts[2], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var create))
-                        throw new Exception($"Invalid create time: {parts[2]}");
-                    if (!DateTime.TryParse(parts[3], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var expire))
-                        throw new Exception($"Invalid expire time: {parts[3]}");
-                    if (!int.TryParse(parts[1], out var periodType))
+                    if (parts.Length < 5) throw new Exception($"Insufficient fields: {text}");
+
+                    // Order: CreateTime|PeriodType|MachineID|Quota|ExpiredTime
+
+                    if (!DateTime.TryParse(parts[0], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var create))
+                        throw new Exception($"Invalid create time: {parts[0]}");
+
+                    int periodType = 0;
+                    if (!string.IsNullOrWhiteSpace(parts[1]) && !int.TryParse(parts[1], out periodType))
                         throw new Exception($"Invalid period type: {parts[1]}");
-                    
+
+                    string machineId = parts[2];
+                    string quota = parts[3];
+
+                    if (!DateTime.TryParse(parts[4], CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var expire))
+                        throw new Exception($"Invalid expire time: {parts[4]}");
+
                     info = new RegistrationInfo
                     {
-                        MachineID = parts[0],
+                        MachineID = machineId,
                         PeriodType = periodType,
                         CreateTime = create,
-                        ExpiredTime = expire
+                        ExpiredTime = expire,
+                        Quota = quota
                     };
                     return ValidateInfo(info, out error);
                 }

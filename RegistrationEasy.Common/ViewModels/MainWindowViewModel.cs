@@ -37,6 +37,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _expiredTime = "-";
 
     [ObservableProperty]
+    private string _quota = "-";
+
+    [ObservableProperty]
     private bool _showAbout;
 
     [ObservableProperty]
@@ -104,6 +107,7 @@ public partial class MainWindowViewModel : ViewModelBase
         PeriodType = info.PeriodType.ToString();
         CreateTime = info.CreateTime.ToString("yyyy-MM-dd HH:mm:ss");
         ExpiredTime = info.ExpiredTime.ToString("yyyy-MM-dd HH:mm:ss");
+        Quota = info.Quota;
 
         StatusMessage = "Registration Successful";
         IsError = false;

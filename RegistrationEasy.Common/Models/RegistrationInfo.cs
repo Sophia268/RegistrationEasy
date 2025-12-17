@@ -18,6 +18,9 @@ namespace RegistrationEasy.Models
         public DateTime CreateTime { get; set; }
 
         public DateTime ExpiredTime { get; set; }
+
+        [JsonPropertyName("quota")]
+        public string Quota { get; set; } = string.Empty;
     }
 
     public class CustomDateTimeConverter : JsonConverter<DateTime>

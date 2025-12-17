@@ -56,6 +56,10 @@
                             <TextBlock Grid.Column="0" Text="Expired Time:"/>
                             <TextBlock Grid.Column="1" Text="{Binding ExpiredTime}"/>
                         </Grid>
+                        <Grid ColumnDefinitions="120, *">
+                            <TextBlock Grid.Column="0" Text="Quota:"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Quota}"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
             </StackPanel>
