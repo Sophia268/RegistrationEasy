@@ -113,7 +113,7 @@ jobs:
             build-tools;34.0.0
 
       - name: Install .NET Android workload
-        run: dotnet workload install android
+        run: dotnet workload install android --ignore-failed-sources --source https://api.nuget.org/v3/index.json
 
       - name: Get Version
         id: get_version
