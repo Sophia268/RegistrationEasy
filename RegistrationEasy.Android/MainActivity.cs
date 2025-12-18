@@ -20,6 +20,23 @@ public class MainActivity : AvaloniaMainActivity<App>
     {
         try
         {
+            CopyConfigFromAssets();
+
+            App.OpenUrl = (url) =>
+            {
+                try
+                {
+                    var uri = global::Android.Net.Uri.Parse(url);
+                    var intent = new global::Android.Content.Intent(global::Android.Content.Intent.ActionView, uri);
+                    intent.AddFlags(global::Android.Content.ActivityFlags.NewTask);
+                    global::Android.App.Application.Context.StartActivity(intent);
+                }
+                catch (System.Exception ex)
+                {
+                    global::Android.Util.Log.Error("RegistrationEasy", $"Cannot open url: {ex}");
+                }
+            };
+
             MachineIdProvider.PlatformGetMachineId = () =>
             {
                 try
@@ -41,6 +58,23 @@ public class MainActivity : AvaloniaMainActivity<App>
             // Log to Android logcat as well
             global::Android.Util.Log.Error("RegistrationEasy", $"FATAL ERROR in MainActivity.OnCreate: {ex}");
             throw; // Re-throw to let the app crash visibly if we can't recover
+        }
+    }
+
+    private void CopyConfigFromAssets()
+    {
+        try
+        {
+            var destination = System.IO.Path.Combine(System.AppContext.BaseDirectory, "config.json");
+            // Overwrite to ensure we have the latest config
+            using var stream = Assets!.Open("config.json");
+            using var dest = System.IO.File.Create(destination);
+            stream.CopyTo(dest);
+        }
+        catch (System.Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Config copy failed: {ex.Message}");
+            global::Android.Util.Log.Error("RegistrationEasy", $"Config copy failed: {ex.Message}");
         }
     }
 

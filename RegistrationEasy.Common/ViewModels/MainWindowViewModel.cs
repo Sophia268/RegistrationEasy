@@ -146,6 +146,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void OpenUrl(string url)
     {
+        if (RegistrationEasy.App.OpenUrl != null)
+        {
+            RegistrationEasy.App.OpenUrl(url);
+            return;
+        }
+
         try
         {
             Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });

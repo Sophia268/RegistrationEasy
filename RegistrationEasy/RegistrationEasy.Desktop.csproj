@@ -16,9 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="config.json">
+    <Content Include="..\Resources\**">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

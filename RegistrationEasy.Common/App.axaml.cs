@@ -8,11 +8,14 @@ using Avalonia.Styling;
 using Avalonia.Themes.Fluent;
 using RegistrationEasy.ViewModels;
 using RegistrationEasy.Views;
+using System;
 
 namespace RegistrationEasy;
 
 public partial class App : Application
 {
+    public static Action<string>? OpenUrl { get; set; }
+
     public override void Initialize()
     {
         RequestedThemeVariant = ThemeVariant.Default;
